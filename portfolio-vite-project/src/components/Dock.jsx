@@ -30,7 +30,6 @@ function DockIcon({ logo, label, mouseX, onClick, showDot }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Tooltip Label */}
       <AnimatePresence>
         {isHovered && (
           <motion.div
@@ -55,7 +54,6 @@ function DockIcon({ logo, label, mouseX, onClick, showDot }) {
         <img src={logo} className="w-full h-full object-cover shadow-sm border border-black/5" alt={label} />
       </motion.div>
 
-      {/* The Active Indicator Dot */}
       {showDot && (
         <div className="absolute -bottom-3 w-1.5 h-1.5 bg-black/50 rounded-full" />
       )}
@@ -63,15 +61,26 @@ function DockIcon({ logo, label, mouseX, onClick, showDot }) {
   );
 }
 
-export default function Dock({ isContactOpen, onOpenContact, isResumeOpen, onOpenResume }) {
+// Add the new props to the function signature
+export default function Dock({ 
+  isContactOpen, 
+  onOpenContact, 
+  isResumeOpen, 
+  onOpenResume,
+  isReservOpen,    // New Prop
+  onOpenReserv     // New Prop
+}) {
   const mouseX = useMotionValue(Infinity);
+  const [isDockHovered, setIsDockHovered] = useState(false);
 
   const getAppStatus = (id) => {
     switch(id) {
       case 4: // Contacts
         return { isOpen: isContactOpen, handler: onOpenContact };
-      case 1: // Finder (Decoupled from Resume)
-        return { isOpen: false, handler: () => console.log("Finder clicked") };
+      case 1: // Finder/Resume
+        return { isOpen: isResumeOpen, handler: onOpenResume };
+      case 3: // Calendar -> Linked to Reservations
+        return { isOpen: isReservOpen, handler: onOpenReserv };
       case 2: // Terminal
         return { isOpen: false, handler: () => console.log("Terminal clicked") };
       default: 
@@ -82,8 +91,14 @@ export default function Dock({ isContactOpen, onOpenContact, isResumeOpen, onOpe
   return (
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
-      onMouseLeave={() => mouseX.set(Infinity)}
-      className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-end gap-3 p-3 px-4 bg-white/20 backdrop-blur-2xl border border-white/30 rounded-2xl shadow-2xl h-[70px] z-20"
+      onMouseLeave={() => {
+        mouseX.set(Infinity);
+        setIsDockHovered(false);
+      }}
+      onMouseEnter={() => setIsDockHovered(true)}
+      className={`fixed bottom-4 left-1/2 -translate-x-1/2 flex items-end gap-3 p-3 px-4 bg-white/20 backdrop-blur-2xl border border-white/30 rounded-2xl shadow-2xl h-[70px] transition-z duration-200 ${
+        isDockHovered ? "z-[9999]" : "z-20"
+      }`}
     >
       {icons.map((app) => {
         const { isOpen, handler } = getAppStatus(app.id);

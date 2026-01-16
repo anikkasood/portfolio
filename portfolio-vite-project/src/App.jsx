@@ -3,7 +3,9 @@ import Dock from './components/Dock';
 import Window from './components/Window';
 import DesktopFile from './components/DesktopFile';
 import { ProfileCard } from './components/Widgets';
-
+import MenuBar from './components/MenuBar';
+import Notification from './components/Notification'; 
+import ReservationSystem from './components/ReservationSystem';
 // Assets
 import wallPaper from './assets/wallpaper6.jpg';
 import profileImg from './assets/headshot.jpg'; 
@@ -40,8 +42,8 @@ function App() {
   const [isContactOpen, setIsContactOpen] = useState(true); 
   const [focusedWindow, setFocusedWindow] = useState("contact");
   const [isMobile, setIsMobile] = useState(false);
-  
-  const [resumePos, setResumePos] = useState({ x: 100, y: 100 });
+const [isReservOpen, setIsReservOpen] = useState(false);  
+const [resumePos, setResumePos] = useState({ x: 100, y: 100 });
   const [contactPos, setContactPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -77,14 +79,40 @@ function App() {
     setIsResumeOpen(true);
   };
 
+  const openReservations = () => {
+    // Optional: Add centering logic similar to openResume here
+    setFocusedWindow("reserv");
+    setIsReservOpen(true);
+  };
+
   return (
     <div 
       className="fixed inset-0 w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden font-sans"
       style={{ backgroundImage: `url(${wallPaper})` }}
     >
-      <div className="absolute top-10 right-6 flex flex-col gap-6 items-center z-10"> 
+      <MenuBar />
+      <Notification 
+        title="Welcome to my corner of the web!" 
+        message="Here's my twist on the MacOS and a portfolio of my work. Click around + explore! (＾◡＾)っ" 
+      />
+     
+      <div className="absolute top-20 right-6 flex flex-col gap-6 items-center z-10"> 
         <DesktopFile name="Resume.pdf" icon="📄" onOpen={openResume} />
       </div>
+
+      {isReservOpen && (
+        <Window 
+          title="Reservations" 
+          onClose={() => setIsReservOpen(false)} 
+          initialPos={{ x: 250, y: 70 }}
+          onFocus={() => setFocusedWindow("reserv")}
+          zIndex={focusedWindow === "reserv" ? 200 : 100}
+          size="1000px"
+          height="580px"
+        >
+          <ReservationSystem />
+        </Window>
+      )}
 
       {isContactOpen && (
         <Window 
@@ -100,7 +128,8 @@ function App() {
             <ProfileCard 
               name="Anika Sood"
               image={profileImg}
-              bio="I am currently completing my MS in Computer Science at UC Riverside (Graduating April 2026) and am actively seeking 2026 early-career software roles. Check out my resume on the right for more details on my technical experience. Parallel to my CS career, I have spent 5 years as a professional photographer specializing in portraits, concerts, and fashion. I always welcome discussions regarding software engineering opportunities, photography projects, or collaborations. Feel free to connect via links above!"
+              bio="I'm actively seeking early-career software engineering roles & will be graduating from UC Riverside in April 2026 with my MS in Computer Science. To learn more about my technical background, you can view my resume on Desktop! I have been doing professional photography for 5+ years & specialize in portraits, concerts, and fashion. I always welcome discussions regarding software engineering opportunities, photography projects, or any collaborations. Feel free to connect via links above!"
+              fun_fact="Fun fact- I built this site from scratch & have published an article about the process on Medium. ◝(ᵔᗜᵔ)◜ "
             />
           </div>
         </Window>
@@ -151,8 +180,8 @@ function App() {
       <Dock 
         isContactOpen={isContactOpen} 
         onOpenContact={openContact}
-        isResumeOpen={isResumeOpen}
-        onOpenResume={openResume} 
+        isReservOpen={isReservOpen}       // Pass State
+        onOpenReserv={openReservations}   // Pass Handler
       />
     </div>
   );

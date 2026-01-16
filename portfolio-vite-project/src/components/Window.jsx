@@ -6,7 +6,7 @@ export default function Window({
   onClose,
   initialPos,
   onFocus,
-  zIndex = 100, // Higher default Z
+  zIndex = 100,
   size = "600px",
   height = "auto"
 }) {
@@ -28,13 +28,17 @@ export default function Window({
         zIndex,
         width: size,
         height: height,
+        /* Enable browser native resize */
+        resize: "both",
+        overflow: "auto",
       }}
       className="
-        min-w-[320px]
+        min-w-[320px] min-h-[200px]
         bg-white/80 backdrop-blur-2xl
         rounded-xl shadow-2xl border border-white/40
-        flex flex-col overflow-hidden
+        flex flex-col
         select-none
+        scrollbar-hide
       "
     >
       {/* Title Bar */}
@@ -73,9 +77,13 @@ export default function Window({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto min-h-0 text-slate-800">
+      {/* Content Area */}
+      <div className="flex-1 overflow-auto min-h-0 text-slate-800 pointer-events-auto">
         {children}
       </div>
+
+      {/* Invisible Resize Handle for easier grabbing */}
+      <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50" />
     </motion.div>
   );
 }

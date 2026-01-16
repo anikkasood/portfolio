@@ -1,7 +1,7 @@
 import { Mail, Linkedin, Github, Instagram, Share2, Youtube, MessageSquare, Phone, Video, Pin as Pinterest } from 'lucide-react';
 
 /* ---------- Profile Card (Centered macOS Style) ---------- */
-export function ProfileCard({ name, bio, image }) {
+export function ProfileCard({ name, bio, image, fun_fact }) {
   const actionButtons = [
     { icon: <Mail size={18} />, label: 'Email', link: "mailto:asood008@ucr.edu" },
     { icon: <Linkedin size={18} />, label: 'LinkedIn', link: "#" },
@@ -11,7 +11,7 @@ export function ProfileCard({ name, bio, image }) {
   ];
 
   return (
-    <div className="flex flex-col w-full max-w-[400px] mx-auto select-none bg-transparent items-center text-center">
+    <div className="flex flex-col w-full max-w-[500px] mx-auto select-none bg-transparent items-center text-center">
       
       {/* Top Section: Photo + Name Stacked & Centered */}
       <div className="flex flex-col items-center gap-4 mb-8">
@@ -53,7 +53,7 @@ export function ProfileCard({ name, bio, image }) {
               {btn.icon}
             </div>
             
-            <span className="text-[10px] font-medium text-slate-400 group-hover:text-slate-600 transition-colors">
+            <span className="text-[11px] font-medium text-slate-400 group-hover:text-slate-600 transition-colors">
               {btn.label}
             </span>
           </a>
@@ -65,8 +65,11 @@ export function ProfileCard({ name, bio, image }) {
         <span className="text-sm font-bold text-slate-900 block mb-1">
           About
         </span>
-        <p className="text-[12px] text-slate-600 leading-relaxed font-medium">
+        <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
           {bio}
+        </p>
+        <p className="text-[11px]  text-slate-500 leading-relaxed font-medium mt-4">
+          {fun_fact}
         </p>
       </div>
     </div>
