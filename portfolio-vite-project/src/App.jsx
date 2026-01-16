@@ -1,119 +1,153 @@
+import { useState, useEffect } from 'react';
 import Dock from './components/Dock';
 import Window from './components/Window';
-import PhotoGallery from './components/PhotoGallery';
 import DesktopFile from './components/DesktopFile';
-import { useState, useEffect } from 'react';
+import { ProfileCard } from './components/Widgets';
 
-import wallPaper from './assets/wallpaper.jpg';
-import img1 from './assets/15-Sequoia-Sunrise.png';
-import img2 from './assets/photography-highlights/IMG_6581.JPG';
-import img3 from './assets/photography-highlights/IMG_3596.JPG';
+// Assets
+import wallPaper from './assets/wallpaper6.jpg';
+import profileImg from './assets/headshot.jpg'; 
+import resumePDF from './assets/Resume_AnikaSood.pdf'; 
 
-const albumPhotos = [img1, img2, img3];
+function MacButton({ children, href, download, className = "", onClick }) {
+  const baseStyles = `
+    px-5 py-2
+    bg-blue-50 text-[#007AFF]
+    text-[13px] font-semibold
+    rounded-lg
+    transition-all duration-200
+    hover:bg-blue-100 active:scale-95
+    inline-flex items-center justify-center
+    select-none cursor-pointer
+  `;
+  
+  if (href) {
+    return (
+      <a href={href} download={download} className={`${baseStyles} ${className}`}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <button onClick={onClick} className={`${baseStyles} ${className}`}>
+      {children}
+    </button>
+  );
+}
 
 function App() {
   const [isResumeOpen, setIsResumeOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(true); 
   const [focusedWindow, setFocusedWindow] = useState("contact");
+  const [isMobile, setIsMobile] = useState(false);
   
   const [resumePos, setResumePos] = useState({ x: 100, y: 100 });
   const [contactPos, setContactPos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    const handleCenter = () => {
-      const isMobile = window.innerWidth < 768;
-      
-      // Exact percentages used in the Window 'size' prop below
-      const widthPercent = isMobile ? 0.9 : 0.6; 
-      const heightPercent = isMobile ? 0.8 : 0.7; 
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
 
-      const winW = window.innerWidth * widthPercent; 
-      const winH = window.innerHeight * heightPercent; 
-      
-      setContactPos({
-        x: (window.innerWidth - winW) / 2,
-        y: (window.innerHeight - winH) / 2,
-      });
+      const contactWidth = mobile ? window.innerWidth * 0.92 : 500;
+      const x = (window.innerWidth - contactWidth) / 2;
+      const y = window.innerHeight * 0.10; 
+      setContactPos({ x, y });
     };
 
-    handleCenter();
-    window.addEventListener('resize', handleCenter);
-    return () => window.removeEventListener('resize', handleCenter);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const openContact = () => {
-    if (isContactOpen) {
-      setFocusedWindow("contact");
-      return;
-    }
-    setIsContactOpen(true);
     setFocusedWindow("contact");
+    setIsContactOpen(true);
   };
 
   const openResume = () => {
-    if (isResumeOpen) {
-      setFocusedWindow("resume");
-      return;
+    if (!isResumeOpen) {
+      const winW = isMobile ? window.innerWidth * 0.95 : Math.min(window.innerWidth * 0.8, 1100);
+      const winH = window.innerHeight * 0.85;
+      const centerX = (window.innerWidth - winW) / 2;
+      const centerY = (window.innerHeight - winH) / 2;
+      setResumePos({ x: centerX, y: centerY });
     }
-    const isMobile = window.innerWidth < 768;
-    const winW = isMobile ? window.innerWidth * 0.85 : window.innerWidth * 0.4;
-    const winH = isMobile ? window.innerHeight * 0.7 : window.innerHeight * 0.5;
-    
-    const maxX = window.innerWidth - winW - 20;
-    const maxY = window.innerHeight - winH - 20;
-    const randomX = Math.max(10, Math.floor(Math.random() * maxX));
-    const randomY = Math.max(10, Math.floor(Math.random() * maxY));
-
-    setResumePos({ x: randomX, y: randomY });
-    setIsResumeOpen(true);
     setFocusedWindow("resume");
+    setIsResumeOpen(true);
   };
 
   return (
     <div 
-      className="fixed inset-0 w-screen h-screen m-0 p-0 bg-cover bg-center bg-no-repeat overflow-hidden"
-      style={{ 
-        backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, .3), rgba(0, 0, 0, 0.2)), url(${wallPaper})` 
-      }}
+      className="fixed inset-0 w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden font-sans"
+      style={{ backgroundImage: `url(${wallPaper})` }}
     >
-      {/* Desktop File Layer */}
       <div className="absolute top-10 right-6 flex flex-col gap-6 items-center z-10"> 
-        <DesktopFile name="Resume" icon="📄" onOpen={openResume} />
+        <DesktopFile name="Resume.pdf" icon="📄" onOpen={openResume} />
       </div>
-     
+
       {isContactOpen && (
         <Window 
-          title="About + Contact Me" 
+          title="Contact" 
           onClose={() => setIsContactOpen(false)} 
           initialPos={contactPos}
           onFocus={() => setFocusedWindow("contact")}
-          zIndex={focusedWindow === "contact" ? 50 : 10}
-          // Use standard Tailwind classes for desktop, and let the initialPos handle the centering math
-          size="w-[90vw] md:w-[60vw] h-[80vh] md:h-[70vh]"
+          zIndex={focusedWindow === "contact" ? 200 : 100}
+          size={isMobile ? "92vw" : "500px"}
+          height={isMobile ? "80vh" : "auto"}
         >
-          <div className="flex flex-col h-full items-center justify-center text-slate-700 p-2 text-center">
-            <h2 className="text-xl md:text-2xl font-bold mb-4">Anika Sood Photography</h2>
-            <p className="text-sm md:text-base font-medium">This window is now perfectly centered on all devices.</p>
+          <div className="overflow-y-auto overflow-x-hidden bg-transparent p-6 md:p-10">
+            <ProfileCard 
+              name="Anika Sood"
+              image={profileImg}
+              bio="I am currently completing my MS in Computer Science at UC Riverside (Graduating April 2026) and am actively seeking 2026 early-career software roles. Check out my resume on the right for more details on my technical experience. Parallel to my CS career, I have spent 5 years as a professional photographer specializing in portraits, concerts, and fashion. I always welcome discussions regarding software engineering opportunities, photography projects, or collaborations. Feel free to connect via links above!"
+            />
           </div>
         </Window>
       )}
 
       {isResumeOpen && (
         <Window 
-          title="Resume" 
+          title="Resume.pdf" 
           onClose={() => setIsResumeOpen(false)} 
           initialPos={resumePos}
           onFocus={() => setFocusedWindow("resume")}
-          zIndex={focusedWindow === "resume" ? 50 : 10}
-          size="w-[85vw] md:w-[40vw] h-[70vh] md:h-[50vh]"
+          zIndex={focusedWindow === "resume" ? 200 : 100}
+          size={isMobile ? "95vw" : "50vw"}
+          height="75vh"
         >
-          <div className="flex flex-col h-full items-center justify-center text-slate-700 p-2 text-center">
-            <h2 className="text-xl md:text-2xl font-bold mb-4">My Resume</h2>
-            <p>Resume content here.</p>
+          <div className="flex flex-col h-full bg-[#f5f5f7] overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shrink-0">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Document</span>
+                <span className="text-xs font-semibold text-gray-700">Anika_Sood_Resume.pdf</span>
+              </div>
+              <MacButton href={resumePDF} download="Anika_Sood_Resume.pdf">
+                Download
+              </MacButton>
+            </div>
+
+            <div className="flex-1 w-full bg-gray-100 overflow-hidden relative">
+              {isMobile ? (
+                <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-white">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Resume Preview</h3>
+                  <p className="text-sm text-gray-500 mb-6">PDF embedding is restricted on mobile devices.</p>
+                  <MacButton href={resumePDF} className="w-full py-3">
+                    View Full PDF
+                  </MacButton>
+                </div>
+              ) : (
+                <iframe
+                  src={`${resumePDF}#view=FitH`}
+                  title="Resume"
+                  className="w-full h-full border-none"
+                />
+              )}
+            </div>
           </div>
         </Window>
       )}
-      
+
       <Dock 
         isContactOpen={isContactOpen} 
         onOpenContact={openContact}
