@@ -10,6 +10,7 @@ import ReservationSystem from './components/ReservationSystem';
 import wallPaper from './assets/wallpaper6.jpg';
 import profileImg from './assets/headshot.jpg'; 
 import resumePDF from './assets/Resume_AnikaSood.pdf'; 
+import Finder from './components/Finder';
 
 function MacButton({ children, href, download, className = "", onClick }) {
   const baseStyles = `
@@ -45,6 +46,8 @@ function App() {
 const [isReservOpen, setIsReservOpen] = useState(false);  
 const [resumePos, setResumePos] = useState({ x: 100, y: 100 });
   const [contactPos, setContactPos] = useState({ x: 0, y: 0 });
+const [isFinderOpen, setIsFinderOpen] = useState(false);
+const [finderPos, setFinderPos] = useState({ x: 50, y: 50 });
 
   useEffect(() => {
     const handleResize = () => {
@@ -66,6 +69,11 @@ const [resumePos, setResumePos] = useState({ x: 100, y: 100 });
     setFocusedWindow("contact");
     setIsContactOpen(true);
   };
+
+  const openFinder = () => {
+  setFocusedWindow("finder");
+  setIsFinderOpen(true);
+};
 
   const openResume = () => {
     if (!isResumeOpen) {
@@ -111,6 +119,20 @@ const [resumePos, setResumePos] = useState({ x: 100, y: 100 });
           height="580px"
         >
           <ReservationSystem />
+        </Window>
+      )}
+
+      {isFinderOpen && (
+        <Window 
+          title="Finder — Photography" 
+          onClose={() => setIsFinderOpen(false)} 
+          initialPos={finderPos}
+          onFocus={() => setFocusedWindow("finder")}
+          zIndex={focusedWindow === "finder" ? 200 : 100}
+          size="900px"
+          height="600px"
+        >
+          <Finder />
         </Window>
       )}
 
@@ -178,11 +200,13 @@ const [resumePos, setResumePos] = useState({ x: 100, y: 100 });
       )}
 
       <Dock 
-        isContactOpen={isContactOpen} 
-        onOpenContact={openContact}
-        isReservOpen={isReservOpen}       // Pass State
-        onOpenReserv={openReservations}   // Pass Handler
-      />
+      isContactOpen={isContactOpen} 
+      onOpenContact={openContact}
+      isFinderOpen={isFinderOpen}       // Make sure this state exists in App.jsx
+      onOpenFinder={openFinder}         // Make sure this function exists in App.jsx
+      isReservOpen={isReservOpen}       
+      onOpenReserv={openReservations}   
+    />
     </div>
   );
 }

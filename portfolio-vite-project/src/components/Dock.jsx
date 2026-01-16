@@ -6,10 +6,9 @@ import calendarLogo from '../assets/dock-icons/calendar_icon.PNG';
 import contactLogo from '../assets/dock-icons/contact_icon.PNG';  
 
 const icons = [
-  { id: 1, logo: finderLogo, label: "Finder" },
-  { id: 2, logo: terminalLogo, label: "Terminal" },
-  { id: 3, logo: calendarLogo, label: "Calendar" },
-  { id: 4, logo: contactLogo, label: "Contacts" },
+  { id: 1, logo: finderLogo, label: "Photography Portfolio" },
+  { id: 3, logo: calendarLogo, label: "Book a Photoshoot" },
+  { id: 4, logo: contactLogo, label: "About + Contact" },
 ];
 
 function DockIcon({ logo, label, mouseX, onClick, showDot }) {
@@ -61,28 +60,25 @@ function DockIcon({ logo, label, mouseX, onClick, showDot }) {
   );
 }
 
-// Add the new props to the function signature
 export default function Dock({ 
   isContactOpen, 
   onOpenContact, 
-  isResumeOpen, 
-  onOpenResume,
-  isReservOpen,    // New Prop
-  onOpenReserv     // New Prop
+  isFinderOpen,    // Added
+  onOpenFinder,     // Added
+  isReservOpen,    
+  onOpenReserv     
 }) {
   const mouseX = useMotionValue(Infinity);
   const [isDockHovered, setIsDockHovered] = useState(false);
 
   const getAppStatus = (id) => {
     switch(id) {
+      case 1: // Finder
+        return { isOpen: isFinderOpen, handler: onOpenFinder };
+      case 3: // Bookings
+        return { isOpen: isReservOpen, handler: onOpenReserv };
       case 4: // Contacts
         return { isOpen: isContactOpen, handler: onOpenContact };
-      case 1: // Finder/Resume
-        return { isOpen: isResumeOpen, handler: onOpenResume };
-      case 3: // Calendar -> Linked to Reservations
-        return { isOpen: isReservOpen, handler: onOpenReserv };
-      case 2: // Terminal
-        return { isOpen: false, handler: () => console.log("Terminal clicked") };
       default: 
         return { isOpen: false, handler: undefined };
     }
