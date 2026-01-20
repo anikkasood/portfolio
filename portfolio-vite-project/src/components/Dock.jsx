@@ -1,7 +1,6 @@
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, useState } from "react";
 import finderLogo from '../assets/dock-icons/finder_icon.PNG';
-import terminalLogo from '../assets/dock-icons/terminal_icon.PNG';
 import calendarLogo from '../assets/dock-icons/calendar_icon.PNG';
 import contactLogo from '../assets/dock-icons/contact_icon.PNG';  
 
@@ -63,10 +62,10 @@ function DockIcon({ logo, label, mouseX, onClick, showDot }) {
 export default function Dock({ 
   isContactOpen, 
   onOpenContact, 
-  isFinderOpen,    // Added
-  onOpenFinder,     // Added
-  isReservOpen,    
-  onOpenReserv     
+  isFinderOpen,    
+  onOpenFinder,     
+  isReservOpen,    // Received from App
+  onOpenReserv     // Received from App
 }) {
   const mouseX = useMotionValue(Infinity);
   const [isDockHovered, setIsDockHovered] = useState(false);

@@ -1,4 +1,5 @@
 import { motion, useDragControls } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export default function Window({
   title,
@@ -11,10 +12,18 @@ export default function Window({
   height = "auto"
 }) {
   const controls = useDragControls();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <motion.div
-      drag
+      drag={!isMobile} 
       dragControls={controls}
       dragMomentum={false}
       dragListener={false}
@@ -28,12 +37,13 @@ export default function Window({
         zIndex,
         width: size,
         height: height,
-        /* Enable browser native resize */
-        resize: "both",
+        maxWidth: "96vw",
+        maxHeight: "85vh",
+        resize: isMobile ? "none" : "both",
         overflow: "auto",
       }}
       className="
-        min-w-[320px] min-h-[200px]
+        min-w-[300px] min-h-[200px]
         bg-white/80 backdrop-blur-2xl
         rounded-xl shadow-2xl border border-white/40
         flex flex-col
@@ -43,7 +53,7 @@ export default function Window({
     >
       {/* Title Bar */}
       <div
-        onPointerDown={(e) => controls.start(e)}
+        onPointerDown={(e) => !isMobile && controls.start(e)}
         className="
           h-10 flex items-center px-4
           bg-gray-100/50 border-b border-gray-200/50
@@ -82,8 +92,10 @@ export default function Window({
         {children}
       </div>
 
-      {/* Invisible Resize Handle for easier grabbing */}
-      <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50" />
+      {/* Invisible Resize Handle */}
+      {!isMobile && (
+        <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50" />
+      )}
     </motion.div>
   );
 }
