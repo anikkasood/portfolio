@@ -10,7 +10,7 @@ import BookingWindow from './components/Booking/BookingWindow';
 import Finder from './components/Finder';
 
 // Assets
-import wallPaper from './assets/wallpaper6.jpg';
+import wallPaper from './assets/wallpaper.jpg';
 import profileImg from './assets/headshot.jpg'; 
 import resumePDF from './assets/Resume_AnikaSood.pdf'; 
 

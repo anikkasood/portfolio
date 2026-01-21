@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
-export default function Notification({ title, message, duration = 20000 }) {
+export default function Notification({ title, message, duration = 14000 }) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
