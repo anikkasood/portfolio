@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google'; // New Import
+import { GoogleOAuthProvider } from '@react-oauth/google'; 
 import Dock from './components/Dock';
 import Window from './components/Window';
 import DesktopFile from './components/DesktopFile';
@@ -10,11 +10,10 @@ import BookingWindow from './components/Booking/BookingWindow';
 import Finder from './components/Finder';
 
 // Assets
-import wallPaper from './assets/wallpaper.jpg';
+import wallPaper from './assets/wallpaper6.jpg';
 import profileImg from './assets/headshot.jpg'; 
 import resumePDF from './assets/Resume_AnikaSood.pdf'; 
 
-// Replace this string with the Client ID you copied from Google Cloud Console
 const GOOGLE_CLIENT_ID = "18540558321-hpfvnipe07j1ibjuesevcprsidpfd9io.apps.googleusercontent.com";
 
 function MacButton({ children, href, download, className = "", onClick }) {
@@ -121,7 +120,7 @@ function App() {
       >
         <MenuBar />
         <Notification 
-          title="Welcome to my corner of the web!" 
+          title="Welcome!" 
           message="Here's my twist on the MacOS and a portfolio of my software engineering + photography work. Click around & explore! (＾◡＾)っ" 
         />
        
@@ -136,10 +135,11 @@ function App() {
             initialPos={reservPos}
             onFocus={() => setFocusedWindow("reserv")}
             zIndex={focusedWindow === "reserv" ? 200 : 100}
-            size={isMobile ? "92vw" : "700px"}
+            size={isMobile ? "92vw" : "950px"}
             height={isMobile ? "80vh" : "650px"}
           >
-            <BookingWindow />
+            {/* Added onOpenContact prop here */}
+            <BookingWindow onOpenContact={openContact} />
           </Window>
         )}
 

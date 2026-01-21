@@ -1,171 +1,205 @@
 import { useState, useEffect } from 'react';
 
-export default function UserDashboard({ user }) {
-  const [activeTab, setActiveTab] = useState('create');
+export default function UserDashboard({ user, onOpenContact }) { // Added prop here
+  const [activeTab, setActiveTab] = useState('how-to');
   const [myBookings, setMyBookings] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
   const [availabilities, setAvailabilities] = useState([]);
   const [formData, setFormData] = useState({ 
     date: '', time: '', vision: '', clientPhone: '', questions: '' 
   });
 
   useEffect(() => {
-    fetchBookings();
+    fetchMyBookings();
     fetchAvail();
+    fetchAllBookings();
   }, [activeTab]);
 
-  const fetchBookings = async () => {
+  const fetchMyBookings = async () => {
     try {
       const res = await fetch(`http://localhost:5000/api/bookings/user/${user.userId}`);
-      setMyBookings(await res.json());
+      const data = await res.json();
+      setMyBookings(data || []);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchAllBookings = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/bookings/admin');
+      const data = await res.json();
+      setAllBookings(data || []);
     } catch (e) { console.error(e); }
   };
 
   const fetchAvail = async () => {
     try {
       const res = await fetch('http://localhost:5000/api/availability');
-      setAvailabilities(await res.json());
+      const data = await res.json();
+      const cleanedData = (data || []).map(item => ({
+        ...item,
+        times: Array.isArray(item.times) 
+          ? item.times.map(t => typeof t === 'object' ? t.S : t) 
+          : []
+      }));
+      setAvailabilities(cleanedData);
     } catch (e) { console.error(e); }
   };
 
+  const isFormValid = Object.values(formData).every(value => value.trim() !== '');
+
   const handleBooking = async (e) => {
     e.preventDefault();
-    if (!formData.date || !formData.time) return alert("Select date & time");
-    
-    await fetch('http://localhost:5000/api/bookings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: user.userId,
-        clientName: user.name,
-        clientEmail: user.email,
-        ...formData
-      })
-    });
-    setFormData({ date: '', time: '', vision: '', clientPhone: '', questions: '' });
-    setActiveTab('manage');
+    if (!isFormValid) return alert("Please fill out all fields.");
+    try {
+      await fetch('http://localhost:5000/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.userId,
+          clientName: user.name,
+          clientEmail: user.email,
+          ...formData
+        })
+      });
+      setFormData({ date: '', time: '', vision: '', clientPhone: '', questions: '' });
+      setActiveTab('manage');
+    } catch (e) { alert("Booking failed. Try again."); }
   };
 
   const currentDayTimes = availabilities.find(a => a.date === formData.date)?.times || [];
 
   return (
-    <div className="flex flex-col h-full bg-white select-none">
-      <div className="flex justify-center p-3 border-b bg-slate-50/50 backdrop-blur-sm">
-        <div className="flex bg-gray-200 p-1 rounded-lg w-full max-w-[280px]">
-          <button onClick={() => setActiveTab('create')} 
-            className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all ${activeTab === 'create' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>
-            NEW SESSION
-          </button>
-          <button onClick={() => setActiveTab('manage')} 
-            className={`flex-1 py-1.5 text-[11px] font-bold rounded-md transition-all ${activeTab === 'manage' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>
-            MY BOOKINGS
-          </button>
+    <div className="h-full bg-[#F2F2F7] text-[#1D1D1F] font-sans antialiased pb-12 overflow-y-auto">
+      <div className="max-w-2xl mx-auto pt-6 px-6">
+        
+        <div className="flex items-end space-x-1">
+          {['how-to', 'create', 'manage'].map((tab) => (
+            <button 
+              key={tab}
+              onClick={() => setActiveTab(tab)} 
+              className={`px-6 py-4 text-sm font-bold transition-all duration-200 relative ${
+                activeTab === tab 
+                ? 'bg-white text-black after:content-[""] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-[#0071E3] after:rounded-t-full' 
+                : 'text-[#86868B] hover:text-black'
+              }`}
+            >
+              {tab === 'how-to' ? 'How to' : tab === 'create' ? 'New Session' : 'My Bookings'}
+            </button>
+          ))}
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
-        {activeTab === 'create' ? (
-          <form onSubmit={handleBooking} className="space-y-5 animate-in fade-in slide-in-from-bottom-2">
-            <div className="grid grid-cols-2 gap-4">
-               <div>
-                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-tight">Date</label>
-                <input type="date" value={formData.date} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-100" onChange={e => setFormData({...formData, date: e.target.value})} />
+        <div className="bg-white rounded-b-2xl rounded-tr-2xl border border-gray-200 shadow-sm p-6 mb-10">
+          
+          {activeTab === 'how-to' && (
+            <div className="space-y-6 animate-in fade-in duration-400">
+              <div className="pb-2 border-b border-gray-100">
+                <h2 className="text-xl font-bold tracking-tight">Thank you for your interest!</h2>
+                <p className="text-[#86868B] text-sm leading-relaxed">
+                  Follow these steps to book your photoshoot. Please contact me {' '}
+                  <button 
+                    onClick={onOpenContact} 
+                    className="text-[#0071E3] font-bold hover:underline"
+                  >
+                    here
+                  </button>
+                  {' '} for more info, questions, and pricing details.
+                </p>
               </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-tight">Phone</label>
-                <input type="tel" placeholder="000-000-0000" value={formData.clientPhone} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-100" onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
-              </div>
-            </div>
-            
-            {formData.date && (
-              <div className="animate-in fade-in duration-300">
-                <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-tight">Available Times</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {currentDayTimes.map(t => (
-                    <button key={t} type="button" onClick={() => setFormData({...formData, time: t})}
-                      className={`p-2.5 rounded-lg border text-[11px] font-bold transition-all ${formData.time === t ? 'border-blue-600 bg-blue-50 text-blue-700 ring-2 ring-blue-100' : 'bg-white text-slate-500 border-slate-200 hover:border-blue-200'}`}>
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-tight">Your Vision</label>
-              <textarea placeholder="Vibe, outfits, location..." value={formData.vision} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl h-20 text-sm outline-none resize-none" onChange={e => setFormData({...formData, vision: e.target.value})} />
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-tight">Any Questions?</label>
-              <input type="text" placeholder="Ask away..." value={formData.questions} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none" onChange={e => setFormData({...formData, questions: e.target.value})} />
-            </div>
-
-            <button disabled={!formData.time} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-200 disabled:bg-slate-200 disabled:text-slate-400 transition-all active:scale-95">Request Booking</button>
-          </form>
-        ) : (
-          <div className="space-y-4 animate-in fade-in duration-500">
-            {myBookings.length > 0 ? myBookings.map(b => (
-              <div key={b.bookingId} className={`p-5 border rounded-2xl bg-white shadow-sm ${b.status === 'canceled' ? 'opacity-75 grayscale-[0.5]' : 'border-slate-100'}`}>
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 leading-tight">{b.slot}</p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-wider">Created {new Date(b.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
-                    b.status === 'approved' ? 'bg-green-50 text-green-600' : 
-                    b.status === 'canceled' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
-                  }`}>
-                    {b.status}
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-slate-500">
-                    <span className="text-xs">📱</span>
-                    <p className="text-[11px] font-medium">{b.clientPhone || "No phone provided"}</p>
-                  </div>
-
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <span className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Your Vision</span>
-                    <p className="text-[11px] text-slate-600 italic">"{b.vision || "No vision notes"}"</p>
-                  </div>
-
-                  {b.questions && (
-                    <div className="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-                      <span className="block text-[9px] font-bold text-blue-400 uppercase mb-1">Your Questions</span>
-                      <p className="text-[11px] text-slate-600">{b.questions}</p>
+              
+              <div className="grid gap-4">
+                {[
+                  { step: '01', title: 'Pick a Date & Time', desc: 'Select your preferred date/time from the "New Session" tab and tell me more about your shoot.' },
+                  { step: '02', title: 'Check your email & send your deposit!', desc: 'You\'ll receive email confirmation of your booking request with instructions for the deposit.' },
+                  { step: '03', title: 'Booking request will be approved', desc: ' Once deposit is received, your request will be accepted. Check the status on the "My Bookings" tab.' }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-4 p-4 bg-[#FBFBFD] rounded-xl border border-gray-100">
+                    <span className="text-[#0071E3] font-black text-lg">{item.step}</span>
+                    <div>
+                      <h4 className="font-bold text-sm">{item.title}</h4>
+                      <p className="text-[#86868B] text-[13px] leading-relaxed">{item.desc}</p>
                     </div>
-                  )}
-                </div>
-
-                {/* Conditional Button Rendering */}
-                {b.status !== 'canceled' && (
-                  <div className="mt-4 pt-3 border-t border-slate-50 flex justify-end">
-                    <button 
-                      onClick={async () => { 
-                        if(window.confirm("Cancel this booking request?")) { 
-                          await fetch(`http://localhost:5000/api/bookings/${b.bookingId}`, { 
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ status: 'canceled' })
-                          }); 
-                          fetchBookings(); 
-                        } 
-                      }} 
-                      className="text-red-400 text-[10px] font-bold hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
-                    >
-                      CANCEL REQUEST
-                    </button>
                   </div>
-                )}
+                ))}
               </div>
-            )) : (
-              <div className="text-center py-20">
-                <p className="text-slate-400 text-sm italic font-medium">No bookings found.</p>
+
+              <button 
+                onClick={() => setActiveTab('create')}
+                className="w-full py-4 bg-[#0071E3] text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-500/20 hover:bg-[#0077ED] transition-all"
+              >
+                Get Started
+              </button>
+            </div>
+          )}
+
+          {activeTab === 'create' && (
+            <form onSubmit={handleBooking} className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="text-[12px] font-bold text-[#86868B] uppercase px-1">Date</label>
+                  <input type="date" required value={formData.date} className="w-full p-3 bg-[#FBFBFD] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0071E3] outline-none" onChange={e => setFormData({...formData, date: e.target.value, time: ''})} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[12px] font-bold text-[#86868B] uppercase px-1">Phone Number</label>
+                  <input type="tel" required placeholder="(555) 000-0000" value={formData.clientPhone} className="w-full p-3 bg-[#FBFBFD] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0071E3] outline-none" onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
+                </div>
               </div>
-            )}
-          </div>
-        )}
+
+              {formData.date && (
+                <div className="mt-4 animate-in fade-in duration-300">
+                  <label className="text-[12px] font-bold text-[#86868B] uppercase block mb-4 px-1">Available Times</label>
+                  {currentDayTimes.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {currentDayTimes.map(t => {
+                        const isTaken = allBookings.some(b => b.date === formData.date && b.time === t && b.status !== 'canceled' && b.status !== 'declined');
+                        const isSelected = formData.time === t;
+                        if (isTaken) return <div key={t} className="py-3 rounded-xl text-[12px] font-bold border border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed text-center line-through">{t.split(' - ')[0]}</div>;
+                        return (
+                          <button key={t} type="button" onClick={() => setFormData({...formData, time: t})} className={`relative py-3 rounded-xl text-[12px] font-bold transition-all border ${isSelected ? 'bg-[#0071E3] text-white border-[#0071E3] shadow-md scale-[1.02]' : 'bg-white text-[#1D1D1F] border-gray-200 hover:border-[#0071E3]'}`}>
+                            {t.split(' - ')[0]}
+                            {isSelected && <span className="absolute -top-1 -right-1 bg-white text-[#0071E3] rounded-full w-4 h-4 flex items-center justify-center text-[10px] shadow-sm font-black">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : <p className="text-sm text-[#FF3B30] font-medium px-1">No slots available for this date.</p>}
+                </div>
+              )}
+
+              <div className="space-y-4 pt-4 border-t border-gray-100">
+                <div className="space-y-2">
+                  <label className="text-[12px] font-bold text-[#86868B] uppercase px-1">Your Vision</label>
+                  <textarea required placeholder="Describe your shoot..." value={formData.vision} className="w-full p-4 bg-[#FBFBFD] border border-gray-200 rounded-xl h-28 text-sm focus:ring-2 focus:ring-[#0071E3] outline-none resize-none" onChange={e => setFormData({...formData, vision: e.target.value})} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[12px] font-bold text-[#86868B] uppercase px-1">Questions</label>
+                  <input type="text" required placeholder="Any questions?" value={formData.questions} className="w-full p-3 bg-[#FBFBFD] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0071E3] outline-none" onChange={e => setFormData({...formData, questions: e.target.value})} />
+                </div>
+              </div>
+
+              <button disabled={!isFormValid || !formData.time} className={`w-full py-4 rounded-xl font-bold text-[16px] transition-all ${(isFormValid && formData.time) ? 'bg-[#0071E3] text-white hover:bg-[#0077ED] shadow-lg' : 'bg-[#E5E5E7] text-[#A1A1A6] cursor-not-allowed'}`}>Request Session</button>
+            </form>
+          )}
+
+          {activeTab === 'manage' && (
+            <div className="space-y-4 animate-in fade-in">
+              {myBookings.length > 0 ? myBookings.map(b => (
+                <div key={b.bookingId} className="p-5 rounded-xl bg-white border border-gray-100 shadow-sm">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-md font-bold text-[#1D1D1F]">{b.slot}</h3>
+                      <p className="text-[11px] text-[#86868B] font-medium uppercase">Requested {new Date(b.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <span className={`text-[10px] font-black px-2 py-1 rounded border ${b.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-orange-50 text-orange-700 border-orange-200'}`}>{b.status.toUpperCase()}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t border-gray-50">
+                    <span className="text-[13px] font-medium text-[#86868B]">📱 {b.clientPhone}</span>
+                    <button onClick={async () => { if(window.confirm("Cancel?")) { await fetch(`http://localhost:5000/api/bookings/${b.bookingId}`, { method: 'DELETE' }); fetchMyBookings(); fetchAllBookings(); } }} className="text-[#FF3B30] text-[12px] font-bold hover:underline">Cancel Request</button>
+                  </div>
+                </div>
+              )) : <div className="text-center py-20 bg-[#FBFBFD] rounded-xl border-2 border-dashed border-gray-200"><p className="text-[#86868B] text-sm font-medium">No bookings.</p></div>}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

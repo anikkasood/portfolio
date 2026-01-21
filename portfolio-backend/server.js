@@ -115,5 +115,26 @@ app.get('/api/availability', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// REPLACE your current delete route with this:
+app.delete('/api/availability/:date', async (req, res) => {
+  try {
+    const { date } = req.params;
+    console.log("DELETE REQUEST RECEIVED FOR:", date);
+
+    const params = {
+      TableName: "Availability",
+      Key: {
+        "date": date // Ensure this matches your DynamoDB Partition Key name exactly
+      }
+    };
+
+    await docClient.send(new DeleteCommand(params));
+    res.status(200).json({ success: true, message: "Deleted" });
+  } catch (err) {
+    console.error("DELETE ERROR:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));

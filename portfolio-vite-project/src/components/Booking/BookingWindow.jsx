@@ -3,7 +3,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import UserDashboard from './UserDashboard';
 import AdminDashboard from './AdminDashboard';
 
-export default function BookingWindow() {
+export default function BookingWindow({ onOpenContact }) { // Added prop here
   const [user, setUser] = useState(null);
   const ADMIN_EMAIL = "asood008@ucr.edu";
 
@@ -40,7 +40,6 @@ export default function BookingWindow() {
 
   return (
     <div className="h-full flex flex-col bg-white">
-      {/* Shared Header */}
       <div className="px-5 py-2 border-b flex items-center justify-between shrink-0 bg-slate-50/80 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <img src={user.picture} alt="" className="w-5 h-5 rounded-full" />
@@ -49,7 +48,12 @@ export default function BookingWindow() {
         <button onClick={() => { localStorage.clear(); setUser(null); }} className="text-slate-400 hover:text-red-500 text-[11px]">Logout</button>
       </div>
 
-      {user.email === ADMIN_EMAIL ? <AdminDashboard /> : <UserDashboard user={user} />}
+      {/* UPDATED: Pass the prop to UserDashboard */}
+      {user.email === ADMIN_EMAIL ? (
+        <AdminDashboard />
+      ) : (
+        <UserDashboard user={user} onOpenContact={onOpenContact} />
+      )}
     </div>
   );
 }

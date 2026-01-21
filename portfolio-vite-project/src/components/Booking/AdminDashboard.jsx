@@ -3,20 +3,45 @@ import { useState, useEffect } from 'react';
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('all');
   const [bookings, setBookings] = useState([]);
+  const [availabilities, setAvailabilities] = useState([]);
   const [availDate, setAvailDate] = useState('');
   const [selectedTimes, setSelectedTimes] = useState([]);
-  const timeSlots = ["9:00 AM", "10:30 AM", "1:00 PM", "2:30 PM", "4:00 PM", "5:30 PM"];
+  
+  const timeSlots = [
+    "9:00 AM - 10:00 AM", "10:30 AM - 11:30 AM", 
+    "12:00 PM - 1:00 PM", "1:30 PM - 2:30 PM", 
+    "3:00 PM - 4:00 PM", "4:30 PM - 5:30 PM", 
+    "6:00 PM - 7:00 PM"
+  ];
 
-  useEffect(() => { if (activeTab === 'all') fetchAll(); }, [activeTab]);
+  useEffect(() => {
+    if (activeTab === 'all') fetchAllBookings();
+    if (activeTab === 'view-avail') fetchAllAvail();
+  }, [activeTab]);
 
-  const fetchAll = async () => {
+  const fetchAllBookings = async () => {
     try {
       const res = await fetch('http://localhost:5000/api/bookings/admin');
       const data = await res.json();
-      // Sort bookings by date so newest or upcoming are easier to find
-      const sortedData = (data || []).sort((a, b) => new Date(a.date) - new Date(b.date));
-      setBookings(sortedData);
+      setBookings((data || []).sort((a, b) => new Date(a.date) - new Date(b.date)));
     } catch (e) { setBookings([]); }
+  };
+
+  const fetchAllAvail = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/availability');
+      const data = await res.json();
+      const cleanedData = (data || []).map(item => ({
+        ...item,
+        times: Array.isArray(item.times) 
+          ? item.times.map(t => typeof t === 'object' ? t.S : t) 
+          : []
+      }));
+      setAvailabilities(cleanedData.sort((a, b) => new Date(a.date) - new Date(b.date)));
+    } catch (e) { 
+      console.error("Fetch Avail Error:", e);
+      setAvailabilities([]); 
+    }
   };
 
   const handleUpdate = async (id, status) => {
@@ -25,7 +50,7 @@ export default function AdminDashboard() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
-    fetchAll();
+    fetchAllBookings();
   };
 
   const handleSaveAvail = async () => {
@@ -36,109 +61,188 @@ export default function AdminDashboard() {
       body: JSON.stringify({ date: availDate, times: selectedTimes })
     });
     alert("Updated!");
+    setSelectedTimes([]);
+    setAvailDate('');
+    if (activeTab === 'view-avail') fetchAllAvail();
+  };
+
+  const handleDeleteAvail = async (date) => {
+    if (!confirm(`Delete all slots for ${date}?`)) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/availability/${encodeURIComponent(date)}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        setAvailabilities(prev => prev.filter(a => a.date !== date));
+      } else {
+        alert("Server failed to delete.");
+      }
+    } catch (e) {
+      alert("Could not connect to the server.");
+    }
   };
 
   const toggleTime = (t) => {
     setSelectedTimes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
   };
 
-  // Helper to format date nicely
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "No Date";
-    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+  const groupedAvail = availabilities.reduce((acc, curr) => {
+    if (!curr.date) return acc;
+    const dateObj = new Date(curr.date + 'T00:00:00');
+    const month = dateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
+    if (!acc[month]) acc[month] = [];
+    acc[month].push(curr);
+    return acc;
+  }, {});
+
+  const formatDateLabel = (dateStr) => {
+    const date = new Date(dateStr + 'T00:00:00');
+    return {
+      dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      dayNum: date.toLocaleDateString('en-US', { day: 'numeric' })
+    };
   };
 
   return (
-    <div className="flex flex-col h-full bg-white select-none">
-      <div className="flex justify-center p-3 border-b bg-slate-900 shadow-xl">
-        <div className="flex bg-white/10 p-1 rounded-xl w-full max-w-[320px]">
-          <button onClick={() => setActiveTab('all')} className={`flex-1 py-2 text-[11px] font-bold rounded-lg ${activeTab === 'all' ? 'bg-white text-slate-900' : 'text-white/60'}`}>ALL BOOKINGS</button>
-          <button onClick={() => setActiveTab('avail')} className={`flex-1 py-2 text-[11px] font-bold rounded-lg ${activeTab === 'avail' ? 'bg-white text-slate-900' : 'text-white/60'}`}>SET SLOTS</button>
+    <div className="min-h-screen bg-[#F2F2F7] text-[#1D1D1F] font-sans antialiased pb-12">
+      <div className="max-w-2xl mx-auto pt-10 px-6">
+        
+        {/* Navigation Tabs */}
+        <div className="flex items-end space-x-1">
+          {['all', 'avail', 'view-avail'].map((tab) => (
+            <button 
+              key={tab}
+              onClick={() => setActiveTab(tab)} 
+              className={`px-4 py-4 text-[13px] font-bold transition-all relative whitespace-nowrap ${
+                activeTab === tab 
+                ? 'bg-white text-black after:content-[""] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-[#0071E3] after:rounded-t-full' 
+                : 'text-[#86868B] hover:text-black'
+              }`}
+            >
+              {tab === 'all' ? 'Bookings' : tab === 'avail' ? 'Add Availability' : 'Current Availability'}
+            </button>
+          ))}
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
-        {activeTab === 'all' ? (
-          <div className="space-y-4">
-            {bookings.length > 0 ? bookings.map(b => (
-              <div key={b.bookingId} className="p-5 border-2 rounded-2xl border-slate-50 shadow-sm bg-white hover:border-blue-100 transition-colors">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h4 className="font-bold text-base text-slate-900 tracking-tight">{b.clientName}</h4>
-                    <div className="flex items-center gap-2 mt-0.5">
-                       {/* Prominent Date & Time Display */}
-                      <span className="text-[12px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
-                        {formatDate(b.date)}
-                      </span>
-                      <span className="text-[12px] font-bold text-slate-700">
-                        @ {b.time || "No Time"}
-                      </span>
+        <div className="bg-white rounded-b-2xl rounded-tr-2xl border border-gray-200 shadow-sm p-6">
+          
+          {/* TAB: BOOKINGS (Updated to show all form fields) */}
+          {activeTab === 'all' && (
+            <div className="space-y-4 animate-in fade-in">
+              {bookings.length > 0 ? bookings.map(b => (
+                <div key={b.bookingId} className="p-5 rounded-xl border border-gray-100 shadow-sm bg-[#FBFBFD]">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-md font-bold">{b.clientName}</h3>
+                      <p className="text-[12px] text-[#86868B] font-medium">{b.clientEmail}</p>
+                      <div className="mt-2">
+                        <span className="text-[11px] text-[#0071E3] font-bold uppercase bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                          {new Date(b.date + 'T00:00:00').toLocaleDateString()} — {b.time}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-black px-2 py-1 rounded border uppercase ${
+                      b.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-orange-50 text-orange-700 border-orange-200'
+                    }`}>
+                      {b.status}
+                    </span>
+                  </div>
+
+                  {/* Detailed Form Content */}
+                  <div className="space-y-3 py-4 border-y border-gray-50 text-[13px]">
+                    <div>
+                      <label className="text-[10px] font-black text-[#86868B] uppercase block mb-1">Phone Number</label>
+                      <p className="font-semibold text-[#1D1D1F]">{b.clientPhone || "No phone provided"}</p>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-[#86868B] uppercase block mb-1">The Vision</label>
+                      <p className="text-[#424245] leading-relaxed bg-white p-3 rounded-lg border border-gray-50 italic">
+                        "{b.vision || "No vision provided"}"
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-[#86868B] uppercase block mb-1">Additional Questions</label>
+                      <p className="text-[#424245]">{b.questions || "None"}</p>
                     </div>
                   </div>
-                  <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-md ${
-                    b.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                  }`}>
-                    {b.status}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-500 mb-4 border-y border-slate-50 py-3">
-                  <p className="flex items-center gap-1">📧 <span className="truncate">{b.clientEmail}</span></p>
-                  <p className="flex items-center gap-1">📱 <span>{b.clientPhone || 'N/A'}</span></p>
-                </div>
 
-                {b.vision && (
-                  <div className="bg-slate-50 p-3 rounded-xl mb-2 text-[11px] border border-slate-100">
-                    <span className="font-bold text-slate-400 block uppercase text-[9px] mb-1">Vision & Concept:</span>
-                    <p className="text-slate-700 italic">"{b.vision}"</p>
+                  <div className="flex gap-3 pt-4">
+                    <button onClick={() => handleUpdate(b.bookingId, 'approved')} className="flex-1 py-2.5 bg-[#0071E3] text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-sm shadow-blue-200">Accept Request</button>
+                    <button onClick={() => handleUpdate(b.bookingId, 'canceled')} className="flex-1 py-2.5 bg-white text-[#FF3B30] border border-gray-100 rounded-xl text-xs font-bold active:scale-95 transition-all">Cancel</button>
                   </div>
-                )}
-
-                {b.questions && (
-                  <div className="bg-blue-50/30 p-3 rounded-xl mb-4 text-[11px] border border-blue-100">
-                    <span className="font-bold text-blue-400 block uppercase text-[9px] mb-1">Client Questions:</span>
-                    <p className="text-slate-700">{b.questions}</p>
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <button onClick={() => handleUpdate(b.bookingId, 'approved')} className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-[11px] font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-100">Approve</button>
-                  <button onClick={() => handleUpdate(b.bookingId, 'canceled')} className="flex-1 py-2.5 bg-slate-100 text-slate-500 rounded-xl text-[11px] font-bold hover:bg-red-50 hover:text-red-600 transition-all border border-slate-200">Cancel</button>
                 </div>
-              </div>
-            )) : (
-              <div className="flex flex-col items-center justify-center py-20">
-                <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">No requests found</p>
-                <p className="text-slate-300 text-[11px] mt-1 italic font-medium">Wait for clients to book sessions.</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Set Slots Tab */
-          <div className="space-y-6 animate-in fade-in">
-             <div>
-              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">Select Target Date</label>
-              <input type="date" className="w-full p-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-blue-500 transition-all font-medium" onChange={e => setAvailDate(e.target.value)} />
+              )) : <p className="text-center py-20 text-[#86868B]">No bookings.</p>}
             </div>
+          )}
 
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 mb-3 uppercase tracking-widest">Toggle Availability</label>
-              <div className="grid grid-cols-2 gap-3">
+
+          {activeTab === 'avail' && (
+            <div className="space-y-8 animate-in fade-in">
+              <div className="space-y-2">
+                <label className="text-[12px] font-bold text-[#86868B] uppercase px-1">Target Date</label>
+                <input type="date" value={availDate} className="w-full p-3 bg-[#FBFBFD] border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0071E3] outline-none" onChange={e => setAvailDate(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {timeSlots.map(t => (
-                  <button key={t} onClick={() => toggleTime(t)} className={`p-4 rounded-2xl border-2 text-[12px] font-bold transition-all ${selectedTimes.includes(t) ? 'border-blue-600 bg-blue-50 text-blue-700 ring-2 ring-blue-100' : 'bg-white text-slate-400 border-slate-100 hover:border-blue-200'}`}>
-                    {t}
+                  <button key={t} onClick={() => toggleTime(t)} className={`relative py-3 px-4 rounded-xl text-[12px] font-bold border transition-all ${selectedTimes.includes(t) ? 'bg-[#0071E3] text-white border-[#0071E3]' : 'bg-white text-[#1D1D1F] border-gray-200'}`}>
+                    {t} {selectedTimes.includes(t) && <span className="absolute -top-1 -right-1 bg-white text-[#0071E3] rounded-full w-4 h-4 flex items-center justify-center text-[8px] font-black shadow-sm">✔</span>}
                   </button>
                 ))}
               </div>
+              <button onClick={handleSaveAvail} disabled={!availDate} className={`w-full py-4 rounded-xl font-bold ${availDate ? 'bg-[#0071E3] text-white' : 'bg-[#E5E5E7] text-[#A1A1A6]'}`}>Save Availability</button>
             </div>
+          )}
 
-            <button onClick={handleSaveAvail} disabled={!availDate} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-2xl hover:bg-black active:scale-95 transition-all disabled:opacity-30">Update Available Slots</button>
-          </div>
-        )}
+          {/* TAB: VIEW ALL AVAILABILITY (CALENDAR VIEW) */}
+          {activeTab === 'view-avail' && (
+            <div className="space-y-10 animate-in fade-in">
+              {Object.keys(groupedAvail).length > 0 ? Object.entries(groupedAvail).map(([month, days]) => (
+                <div key={month} className="space-y-6">
+                  <h2 className="text-[13px] font-black text-[#0071E3] uppercase tracking-widest border-l-4 border-[#0071E3] pl-3">
+                    {month}
+                  </h2>
+                  <div className="grid grid-cols-1 gap-4">
+                    {days.map((avail, idx) => {
+                      const { dayName, dayNum } = formatDateLabel(avail.date);
+                      return (
+                        <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex flex-col items-center justify-center min-w-[64px] h-[64px] bg-[#F2F2F7] rounded-xl border border-gray-200 overflow-hidden">
+                            <div className="w-full bg-[#0071E3] py-1 flex justify-center">
+                                <span className="text-[9px] font-black text-white uppercase">{dayName}</span>
+                            </div>
+                            <div className="flex-1 flex items-center justify-center">
+                                <span className="text-2xl font-black text-[#1D1D1F]">{dayNum}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 overflow-hidden">
+                            <div className="flex flex-wrap gap-1.5">
+                              {avail.times.map((t, tIdx) => (
+                                <span key={tIdx} className="text-[9px] bg-blue-50 text-[#0071E3] px-2 py-0.5 rounded border border-blue-100 font-bold uppercase tracking-tighter">
+                                  {t.split(' - ')[0]}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <button 
+                            onClick={() => handleDeleteAvail(avail.date)}
+                            className="p-2 text-[#86868B] hover:text-[#FF3B30] hover:bg-red-50 rounded-full transition-all"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )) : <p className="text-center py-20 text-[#86868B]">No availability set.</p>}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
