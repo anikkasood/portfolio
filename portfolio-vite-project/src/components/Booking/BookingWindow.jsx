@@ -30,9 +30,8 @@ export default function BookingWindow({ onOpenContact }) { // Added prop here
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-white">
-        <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 text-2xl">📅</div>
-        <h2 className="text-lg font-semibold mb-1">Book a Session</h2>
-        <p className="text-gray-500 mb-6 text-sm">Sign in with Google to manage bookings.</p>
+        <h2 className="text-lg font-semibold mb-1">Book a Photoshoot</h2>
+        <p className="text-gray-500 mb-6 text-sm">Sign in with Google to get started!</p>
         <GoogleLogin onSuccess={handleLoginSuccess} />
       </div>
     );

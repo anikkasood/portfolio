@@ -2,9 +2,9 @@ export default function LoginView({ onLogin }) {
   return (
     <div className="flex flex-col items-center justify-center h-full p-8 text-center bg-[#F6F6F6]">
       <div className="w-16 h-16 bg-blue-500 rounded-2xl shadow-lg flex items-center justify-center text-3xl mb-6">
-        📅
+        
       </div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-2">Book a Session</h2>
+      <h2 className="text-xl font-semibold text-gray-800 mb-2">Book a Photoshoot</h2>
       <p className="text-sm text-gray-500 mb-8 max-w-[280px]">
         Sign in with Google to schedule a photoshoot or manage existing bookings.
       </p>

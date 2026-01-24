@@ -2,12 +2,16 @@ import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from
 import { useRef, useState } from "react";
 import finderLogo from '../assets/dock-icons/finder_icon.PNG';
 import calendarLogo from '../assets/dock-icons/calendar_icon.PNG';
+import terminalLogo from '../assets/dock-icons/terminal_icon.PNG';
+
 import contactLogo from '../assets/dock-icons/contact_icon.PNG';  
 
 const icons = [
   { id: 1, logo: finderLogo, label: "Photography Portfolio" },
+  { id: 2, logo: terminalLogo, label: "< Coming soon... >" },
   { id: 3, logo: calendarLogo, label: "Book a Photoshoot" },
   { id: 4, logo: contactLogo, label: "About + Contact" },
+  
 ];
 
 function DockIcon({ logo, label, mouseX, onClick, showDot }) {

@@ -27,14 +27,14 @@ const ALBUMS = {
   "Anvita's Graduation": getImagesFromFolder('anvita-grad'),
   "Zoya & Friends": getImagesFromFolder('zoya-grad'),
     "Zoe": getImagesFromFolder('dance-zoe'),
-  
+    "Wedding": getImagesFromFolder('wedding'),
+
   "Fashion/Editorial": getImagesFromFolder('fashion'),
   "Reb's Grad": getImagesFromFolder('reb-grad'),
  
    "Almost Monday": getImagesFromFolder('almost-monday'), // Kept lowercase for band aesthetic
     "Sunaina Grad": getImagesFromFolder('sunaina-grad'),
   "Em's Graduation": getImagesFromFolder('em-grad'),
-  "Wedding": getImagesFromFolder('wedding'),
 
   "Yimon Portraits": getImagesFromFolder('yimon-grad'),
   "Emily's Portraits": getImagesFromFolder('emily-grad'),
