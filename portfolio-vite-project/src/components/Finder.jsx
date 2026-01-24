@@ -1,96 +1,152 @@
 import { useState } from 'react';
 import PhotoGallery from './PhotoGallery';
+// 1. This must be a STATIC string. No variables allowed here!
+const allImages = import.meta.glob('../photo-albums/*/*.{png,jpg,jpeg,PNG,JPG}', {
+  eager: true,
+  import: 'default',
+});
 
-// Mock Data - Replace URLs with your actual image paths
+// 2. We'll create a helper to filter the big list by folder name
+const getImagesFromFolder = (folderName) => {
+  return Object.keys(allImages)
+    .filter((path) => path.includes(`/photo-albums/${folderName}/`))
+    .map((path) => allImages[path]);
+};
+
 const ALBUMS = {
-  Portraits: [
-    "https://picsum.photos/id/64/400/600",
-    "https://picsum.photos/id/65/400/300",
-    "https://picsum.photos/id/66/400/500",
-  ],
-  Concerts: [
-    "https://picsum.photos/id/76/400/300",
-    "https://picsum.photos/id/77/400/400",
-  ],
-  Fashion: [
-    "https://picsum.photos/id/88/400/500",
-    "https://picsum.photos/id/89/400/300",
-  ]
+  // --- Featured / High Energy ---
+  "Dayglow Live": getImagesFromFolder('dayglow'),
+  
+ 
+  
+  // --- Events & Movement ---
+  
+
+  
+  // --- Graduation Portraits (Interspersed) ---
+  "Anvita's Graduation": getImagesFromFolder('anvita-grad'),
+  "Zoya & Friends": getImagesFromFolder('zoya-grad'),
+    "Zoe": getImagesFromFolder('dance-zoe'),
+  
+  "Fashion/Editorial": getImagesFromFolder('fashion'),
+  "Reb's Grad": getImagesFromFolder('reb-grad'),
+ 
+   "Almost Monday": getImagesFromFolder('almost-monday'), // Kept lowercase for band aesthetic
+    "Sunaina Grad": getImagesFromFolder('sunaina-grad'),
+  "Em's Graduation": getImagesFromFolder('em-grad'),
+  "Wedding": getImagesFromFolder('wedding'),
+
+  "Yimon Portraits": getImagesFromFolder('yimon-grad'),
+  "Emily's Portraits": getImagesFromFolder('emily-grad'),
+
+  "Class of 2025": getImagesFromFolder('2025-grad'),
+  "Dalia Grad": getImagesFromFolder('dalia-grad'),
+  
+ 
+  // --- Final Portraits ---
+  "Denise Grad": getImagesFromFolder('denise-grad'),
+  "Sai Portraits": getImagesFromFolder('sai-grad'),
+   // --- Lifestyle & Senior Sessions ---
+  "Kelsey's Session": getImagesFromFolder('kelsey-grad'),
+  
+  "Alyssa Grad": getImagesFromFolder('alyssa-grad'),
+  
 };
 
 export default function Finder() {
   const [currentAlbum, setCurrentAlbum] = useState(null);
 
   return (
-    <div className="flex h-full bg-white text-slate-800">
-      {/* Sidebar */}
-      <div className="w-48 bg-gray-100/50 border-r border-gray-200 p-4 flex flex-col gap-6">
+    <div className="flex h-full bg-white text-slate-800 flex-col md:flex-row">
+      
+      {/* --- DESKTOP SIDEBAR (Hidden on Mobile) --- */}
+      <div className="hidden md:flex w-48 bg-gray-100/50 border-r border-gray-200 p-4 flex-col gap-6">
         <div>
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Favorites</p>
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">Favorites</p>
           <ul className="space-y-1">
             <li 
               onClick={() => setCurrentAlbum(null)}
-              className={`text-sm px-2 py-1 rounded-md cursor-pointer ${!currentAlbum ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+              className={`text-sm px-2 py-1.5 rounded-md cursor-pointer transition-colors ${!currentAlbum ? 'bg-blue-100 text-blue-600 font-medium' : 'hover:bg-gray-200'}`}
             >
-              📂 All Albums
+              All Albums
             </li>
           </ul>
         </div>
         
         <div>
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3">Albums</p>
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">Albums</p>
           <ul className="space-y-1">
             {Object.keys(ALBUMS).map(album => (
               <li 
                 key={album}
                 onClick={() => setCurrentAlbum(album)}
-                className={`text-sm px-2 py-1 rounded-md cursor-pointer ${currentAlbum === album ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-200'}`}
+                className={`text-sm px-2 py-1.5 rounded-md cursor-pointer transition-colors ${currentAlbum === album ? 'bg-blue-100 text-blue-600 font-medium' : 'hover:bg-gray-200'}`}
               >
-                🖼️ {album}
+                {album}
               </li>
             ))}
           </ul>
         </div>
       </div>
 
+      {/* --- MOBILE DROPDOWN NAVIGATION (Visible only on Mobile) --- */}
+      <div className="block md:hidden border-b border-gray-200 p-4 bg-white sticky top-0 z-20">
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Select Album</label>
+          <select 
+            value={currentAlbum || ""} 
+            onChange={(e) => setCurrentAlbum(e.target.value || null)}
+            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none"
+          >
+            <option value="">All Albums</option>
+            {Object.keys(ALBUMS).map(album => (
+              <option key={album} value={album}>{album}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="h-12 border-b border-gray-100 flex items-center px-6 justify-between shrink-0">
-          <h2 className="text-sm font-bold text-gray-700">{currentAlbum || "All Albums"}</h2>
+        <div className="h-10 md:h-12 border-b border-gray-100 flex items-center px-4 md:px-6 justify-between shrink-0">
+          <h2 className="text-xs md:text-sm font-bold text-gray-700 truncate mr-2">
+            {currentAlbum || "All Albums"}
+          </h2>
           {currentAlbum && (
             <button 
               onClick={() => setCurrentAlbum(null)}
-              className="text-xs text-blue-500 hover:underline"
+              className="text-[11px] md:text-xs font-medium text-blue-500 hover:text-blue-600 whitespace-nowrap"
             >
-              Back to Albums
+              Back to Overview
             </button>
           )}
         </div>
 
-        <div className="flex-1 overflow-hidden p-4">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
           {!currentAlbum ? (
-            /* Grid of Albums */
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 animate-in fade-in zoom-in-95 duration-300">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8 animate-in fade-in zoom-in-95 duration-300">
               {Object.keys(ALBUMS).map(album => (
                 <div 
                   key={album} 
                   onClick={() => setCurrentAlbum(album)}
-                  className="group cursor-pointer flex flex-col items-center"
+                  className="group cursor-pointer flex flex-col items-start"
                 >
-                  <div className="w-full aspect-square bg-gray-100 rounded-xl overflow-hidden mb-2 border border-black/5 group-hover:shadow-md transition-all">
+                  <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 md:mb-3 border border-black/5 group-hover:shadow-lg transition-all">
                     <img 
                       src={ALBUMS[album][0]} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                      className="w-full h-full object-cover" 
                       alt={album}
                     />
                   </div>
-                  <span className="text-sm font-medium text-gray-600">{album}</span>
+                  <span className="text-xs md:text-sm font-semibold text-gray-700 leading-tight">{album}</span>
+                  <span className="text-[10px] md:text-xs text-gray-400">{ALBUMS[album].length} photos</span>
                 </div>
               ))}
             </div>
           ) : (
-            /* Gallery of specific Album */
-            <PhotoGallery images={ALBUMS[currentAlbum]} />
+            <div>
+              <PhotoGallery images={ALBUMS[currentAlbum]} />
+            </div>
           )}
         </div>
       </div>

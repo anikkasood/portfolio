@@ -22,7 +22,7 @@ export default function PhotoGallery({ images }) {
             <img
               src={img}
               alt={`Gallery item ${i}`}
-              className="w-full h-auto object-cover rounded-lg shadow-sm hover:scale-[1.02] transition-transform duration-300 cursor-pointer border border-black/5"
+              className="w-full h-auto object-cover rounded-lg shadow-sm cursor-pointer border border-black/5"
             />
           </motion.div>
         ))}

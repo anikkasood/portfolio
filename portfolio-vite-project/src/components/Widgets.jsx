@@ -1,13 +1,26 @@
-import { Mail, Linkedin, Github, Instagram, Share2, Youtube, MessageSquare, Phone, Video, Pin as Pinterest } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { Mail, Linkedin, Github, Instagram, Share2, Youtube, MessageSquare, Phone, Video, Pin as Pinterest, RotateCw } from 'lucide-react';
 
 /* ---------- Profile Card (Centered macOS Style) ---------- */
-export function ProfileCard({ name, bio, image, fun_fact }) {
+export function ProfileCard({ name, bio_tech, bio_photo, image, fun_fact }) {
+  const [cardIndex, setCardIndex] = useState(0);
+  const cards = [
+    { title: "Technical Background", content: bio_tech },
+    { title: "Creative Business", content: bio_photo },
+    { title: "Let's Connect", content: fun_fact }
+  ];
+
+  const handleFlip = () => {
+    setCardIndex((prev) => (prev + 1) % cards.length);
+  };
+
   const actionButtons = [
     { icon: <Mail size={18} />, label: 'Email', link: "mailto:asood008@ucr.edu" },
-    { icon: <Linkedin size={18} />, label: 'LinkedIn', link: "#" },
-    { icon: <Github size={18} />, label: 'GitHub', link: "#" },
-    { icon: <Pinterest size={18} />, label: 'Pinterest', link: "#" },
-    { icon: <Instagram size={18} />, label: 'Instagram', link: "#" },
+    { icon: <Linkedin size={18} />, label: 'LinkedIn', link: "https://www.linkedin.com/in/anikasood-/" },
+    { icon: <Github size={18} />, label: 'GitHub', link: "https://github.com/anikkasood?tab=repositories" },
+    { icon: <Pinterest size={18} />, label: 'Pinterest', link: "https://www.pinterest.com/anikkasood/grad-photography/" },
+    { icon: <Instagram size={18} />, label: 'Instagram', link: "https://www.instagram.com/anikasoodphoto/?hl=en" },
   ];
 
   return (
@@ -39,7 +52,7 @@ export function ProfileCard({ name, bio, image, fun_fact }) {
         </div>
       </div>
 
-      {/* Action Buttons Row - Circular Minimal Style */}
+      {/* Action Buttons Row */}
       <div className="w-full flex justify-between items-center gap-2 mb-6 border-b border-slate-200/30 pb-2">
         {actionButtons.map((btn, i) => (
           <a 
@@ -60,70 +73,38 @@ export function ProfileCard({ name, bio, image, fun_fact }) {
         ))}
       </div>
 
-      {/* About Section - Left aligned text for readability but centered container */}
-      <div className="w-full text-left px-2">
-        <span className="text-sm font-bold text-slate-900 block mb-1">
-          About
-        </span>
-        <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-          {bio}
-        </p>
-        <p className="text-[11px]  text-slate-500 leading-relaxed font-medium mt-4">
-          {fun_fact}
-        </p>
+      {/* Flippable Card Section */}
+      <div 
+        onClick={handleFlip}
+        className="relative w-full min-h-[160px] cursor-pointer perspective-1000 group"
+      >
+        <div className="w-full h-full text-left p-4 rounded-xl border border-white/20 shadow-sm backdrop-blur-sm transition-all duration-300 bg-white/40 hover:bg-gray-100 group-hover:bg-white/60 group-active:scale-[0.98] flex flex-col justify-between">
+            <div>
+            <div className="text-[11px] text-slate-600 leading-relaxed font-medium">
+              {cards[cardIndex].content}
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center mt-4">
+            <div className="flex gap-1">
+              {cards.map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`h-1 w-3 rounded-full transition-all ${i === cardIndex ? 'bg-blue-500 w-6' : 'bg-slate-300'}`} 
+                />
+              ))}
+            </div>
+            <ArrowRight size={14} className="text-slate-400" />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
 export function MacButton({ children, onClick, href, download, className = "" }) {
-  const baseStyles = `
-    px-4 py-1.5 
-    /* macOS System Blue Gradient */
-    bg-gradient-to-b from-[#58A6FF] to-[#007AFF]
-    
-    /* Fine Border and Shadow */
-    border border-black/10 shadow-[inset_0_1px_rgba(255,255,255,0.2),0_1px_2px_rgba(0,0,0,0.1)]
-    
-    /* Text Styling */
-    text-white 
-    text-[13px] 
-    font-medium
-    
-    /* Shape and Transition */
-    rounded-md 
-    transition-all 
-    duration-100 
-    
-    /* Hover and Active States */
-    hover:brightness-110
-    active:brightness-90
-    active:shadow-inner
-    
-    inline-flex items-center justify-center
-    select-none
-    cursor-default
-  `;
-
+  const baseStyles = `px-4 py-1.5 bg-gradient-to-b from-[#58A6FF] to-[#007AFF] border border-black/10 shadow-[inset_0_1px_rgba(255,255,255,0.2),0_1px_2px_rgba(0,0,0,0.1)] text-white text-[13px] font-medium rounded-md transition-all duration-100 hover:brightness-110 active:brightness-90 active:shadow-inner inline-flex items-center justify-center select-none cursor-default`;
   const combinedClasses = `${baseStyles} ${className}`;
-
-  if (href) {
-    return (
-      <a 
-        href={href} 
-        download={download} 
-        className={combinedClasses} 
-        target="_blank" 
-        rel="noopener noreferrer"
-      >
-        {children}
-      </a>
-    );
-  }
-
-  return (
-    <button onClick={onClick} className={combinedClasses}>
-      {children}
-    </button>
-  );
+  if (href) return (<a href={href} download={download} className={combinedClasses} target="_blank" rel="noopener noreferrer">{children}</a>);
+  return (<button onClick={onClick} className={combinedClasses}>{children}</button>);
 }

@@ -187,12 +187,12 @@ export default function UserDashboard({ user, onOpenContact }) { // Added prop h
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-md font-bold text-[#1D1D1F]">{b.slot}</h3>
-                      <p className="text-[11px] text-[#86868B] font-medium uppercase">Requested {new Date(b.createdAt).toLocaleDateString()}</p>
+                      <p className="text-[11px] text-[#86868B] font-medium uppercase">Requested on {new Date(b.createdAt).toLocaleDateString()}</p>
                     </div>
                     <span className={`text-[10px] font-black px-2 py-1 rounded border ${b.status === 'approved' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-orange-50 text-orange-700 border-orange-200'}`}>{b.status.toUpperCase()}</span>
                   </div>
                   <div className="flex justify-between items-center pt-3 border-t border-gray-50">
-                    <span className="text-[13px] font-medium text-[#86868B]">📱 {b.clientPhone}</span>
+                    <span className="text-[13px] font-medium text-[#86868B]">Phone Number - {b.clientPhone}</span>
                     <button onClick={async () => { if(window.confirm("Cancel?")) { await fetch(`http://localhost:5000/api/bookings/${b.bookingId}`, { method: 'DELETE' }); fetchMyBookings(); fetchAllBookings(); } }} className="text-[#FF3B30] text-[12px] font-bold hover:underline">Cancel Request</button>
                   </div>
                 </div>

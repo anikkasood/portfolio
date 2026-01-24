@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google'; 
+import { Gradient } from './Gradient'; // Ensure you have created this file
 import Dock from './components/Dock';
 import Window from './components/Window';
 import DesktopFile from './components/DesktopFile';
@@ -10,7 +11,6 @@ import BookingWindow from './components/Booking/BookingWindow';
 import Finder from './components/Finder';
 
 // Assets
-import wallPaper from './assets/wallpaper6.jpg';
 import profileImg from './assets/headshot.jpg'; 
 import resumePDF from './assets/Resume_AnikaSood.pdf'; 
 
@@ -47,12 +47,19 @@ function App() {
   const [finderPos, setFinderPos] = useState({ x: 50, y: 50 });
   const [reservPos, setReservPos] = useState({ x: 80, y: 80 });
 
+  // Initialize Gradient Animation
+  useEffect(() => {
+    const gradient = new Gradient();
+    gradient.initGradient('#gradient-canvas');
+  }, []);
+
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
 
-      const contactWidth = mobile ? window.innerWidth * 0.92 : 500;
+      // Match the width logic used in the Window component (92vw vs 40vw)
+      const contactWidth = mobile ? window.innerWidth * 0.92 : window.innerWidth * 0.40;
       const x = (window.innerWidth - contactWidth) / 2;
       const y = window.innerHeight * 0.10; 
       setContactPos({ x, y });
@@ -92,16 +99,15 @@ function App() {
     setIsFinderOpen(true);
   };
 
-  const openReserv = () => {
-    if (!isReservOpen) {
-      const winW = isMobile ? window.innerWidth * 0.92 : 700;
-      const winH = isMobile ? window.innerHeight * 0.80 : 650;
-      setReservPos(getRandomPos(winW, winH));
-    }
-    setFocusedWindow("reserv");
-    setIsReservOpen(true);
-  };
-
+ const openReserv = () => {
+  if (!isReservOpen) {
+    const winW = isMobile ? window.innerWidth * 0.92 : 950;
+    const winH = isMobile ? window.innerHeight * 0.80 : 650;
+    setReservPos(getRandomPos(winW, winH));
+  }
+  setFocusedWindow("reserv");
+  setIsReservOpen(true);
+};
   const openResume = () => {
     if (!isResumeOpen) {
       const winW = isMobile ? window.innerWidth * 0.95 : Math.min(window.innerWidth * 0.8, 1100);
@@ -114,10 +120,10 @@ function App() {
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <div 
-        className="fixed inset-0 w-screen h-screen bg-cover bg-center bg-no-repeat overflow-hidden font-sans"
-        style={{ backgroundImage: `url(${wallPaper})` }}
-      >
+      <div className="fixed inset-0 w-screen h-screen overflow-hidden font-sans">
+        {/* Animated Gradient Background */}
+        <canvas id="gradient-canvas" data-transition-in />
+
         <MenuBar />
         <Notification 
           title="Welcome!" 
@@ -125,7 +131,11 @@ function App() {
         />
        
         <div className="absolute top-20 right-6 flex flex-col gap-6 items-center z-10"> 
-          <DesktopFile name="Resume.pdf" icon="📄" onOpen={openResume} />
+          <div style={{ 
+            textShadow: '0px 0px 1px #4b5667ff' // adds a slight "glow" to smooth the outline
+          }}>
+            <DesktopFile name="Resume.pdf" icon="📄" onOpen={openResume} />
+          </div>
         </div>
 
         {isReservOpen && (
@@ -136,9 +146,8 @@ function App() {
             onFocus={() => setFocusedWindow("reserv")}
             zIndex={focusedWindow === "reserv" ? 200 : 100}
             size={isMobile ? "92vw" : "950px"}
-            height={isMobile ? "80vh" : "650px"}
+            height={isMobile ? "80vh" : "800px"}
           >
-            {/* Added onOpenContact prop here */}
             <BookingWindow onOpenContact={openContact} />
           </Window>
         )}
@@ -164,16 +173,28 @@ function App() {
             initialPos={contactPos}
             onFocus={() => setFocusedWindow("contact")}
             zIndex={focusedWindow === "contact" ? 200 : 100}
-            size={isMobile ? "92vw" : "500px"}
-            height={isMobile ? "80vh" : "auto"}
+            size={isMobile ? "92vw" : "40vw"}
+            height={isMobile ? "80vh" : "570px"}
           >
             <div className="overflow-y-auto overflow-x-hidden bg-transparent p-6 md:p-10">
               <ProfileCard 
                 name="Anika Sood"
                 image={profileImg}
-                bio="I'm actively seeking early-career software engineering roles..."
-                fun_fact="Fun fact- I built this site from scratch & have published an article about the process on Medium. ◝(ᵔᗜᵔ)◜ "
-              />
+                bio_tech={
+                  <>
+                    I am a <strong>BS/MS Computer Science student at UC Riverside</strong> (graduating 2026) looking for my first <strong>early-career SWE role</strong>. I’m drawn to software engineering because it’s all about <strong> building things, creativity, & problem solving.</strong> Over the past few summers, I’ve had some great internships that shaped me into the engineer I am today. To learn more about my technical skills, feel free to <strong>check out my resume on the Desktop!</strong>
+                  </>
+                }
+                bio_photo={
+                  <>
+                    Over the past 5 years, I have also been running a <strong>professional photography business</strong> focusing on portraits, fashion, and live concerts. Managing a business while finishing my degrees has taught me a lot about <strong>design patterns, communication, and organization</strong>.
+                  </>
+                }              
+                fun_fact={
+                  <>
+                    This site is a <strong>hybrid space</strong> for both of my worlds. Feel free to reach out if you’re interested in chatting about <strong>software engineering opportunities</strong>, or if you just want to <strong>book a shoot!</strong>
+                  </>
+                }/>
             </div>
           </Window>
         )}
