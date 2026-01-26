@@ -88,7 +88,7 @@ export default function Window({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-auto min-h-0 text-slate-800 pointer-events-auto">
+      <div className={`flex-1 min-h-0 text-slate-800 pointer-events-auto ${isMobile ? 'overflow-auto' : 'overflow-hidden'}`}>
         {children}
       </div>
 

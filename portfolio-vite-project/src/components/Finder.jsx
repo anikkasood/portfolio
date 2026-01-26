@@ -15,38 +15,29 @@ const getImagesFromFolder = (folderName) => {
 
 const ALBUMS = {
   // --- Featured / High Energy ---
-  "Dayglow Live": getImagesFromFolder('dayglow'),
   
- 
-  
-  // --- Events & Movement ---
-  
-
-  
-  // --- Graduation Portraits (Interspersed) ---
   "Anvita's Graduation": getImagesFromFolder('anvita-grad'),
   "Zoya & Friends": getImagesFromFolder('zoya-grad'),
     "Zoe": getImagesFromFolder('dance-zoe'),
-    "Wedding": getImagesFromFolder('wedding'),
+   
 
-  "Fashion/Editorial": getImagesFromFolder('fashion'),
   "Reb's Grad": getImagesFromFolder('reb-grad'),
- 
+ "Dayglow Live": getImagesFromFolder('dayglow'),
+  "Wedding": getImagesFromFolder('wedding'),
    "Almost Monday": getImagesFromFolder('almost-monday'), // Kept lowercase for band aesthetic
     "Sunaina Grad": getImagesFromFolder('sunaina-grad'),
   "Em's Graduation": getImagesFromFolder('em-grad'),
 
+  "Fashion/Editorial": getImagesFromFolder('fashion'),
   "Yimon Portraits": getImagesFromFolder('yimon-grad'),
   "Emily's Portraits": getImagesFromFolder('emily-grad'),
 
   "Class of 2025": getImagesFromFolder('2025-grad'),
   "Dalia Grad": getImagesFromFolder('dalia-grad'),
   
- 
-  // --- Final Portraits ---
+
   "Denise Grad": getImagesFromFolder('denise-grad'),
   "Sai Portraits": getImagesFromFolder('sai-grad'),
-   // --- Lifestyle & Senior Sessions ---
   "Kelsey's Session": getImagesFromFolder('kelsey-grad'),
   
   "Alyssa Grad": getImagesFromFolder('alyssa-grad'),
@@ -58,6 +49,10 @@ export default function Finder() {
 
   return (
     <div className="flex h-full bg-white text-slate-800 flex-col md:flex-row">
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
       
       {/* --- DESKTOP SIDEBAR (Hidden on Mobile) --- */}
       <div className="hidden md:flex w-48 bg-gray-100/50 border-r border-gray-200 p-4 flex-col gap-6">
@@ -75,7 +70,7 @@ export default function Finder() {
         
         <div>
           <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">Albums</p>
-          <ul className="space-y-1">
+          <ul className="space-y-1 overflow-y-auto max-h-[calc(100vh-300px)] scrollbar-hide">
             {Object.keys(ALBUMS).map(album => (
               <li 
                 key={album}

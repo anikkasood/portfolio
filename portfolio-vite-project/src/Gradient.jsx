@@ -30,7 +30,7 @@ export class Gradient {
 
   // This simplified logic creates the "fluid" look
   animate() {
-    this.time += 0.005;
+    this.time += 0.012;
     const { ctx, width, height, time } = this;
 
     // Get colors from CSS variables (set in your index.css)

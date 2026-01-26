@@ -2,12 +2,7 @@ import { motion } from 'framer-motion';
 
 export default function PhotoGallery({ images }) {
   return (
-    <div className="w-full h-full overflow-y-auto no-scrollbar">
-      <style>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
-
+    <div className="w-full h-full">
       {/* The Columns Container */}
       <div className="columns-2 md:columns-3 gap-2 p-2">
         {images.map((img, i) => (
